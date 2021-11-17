@@ -1,0 +1,51 @@
+---
+title: "Oklahoma City Thunder DS&S Technical Assessment"
+author: "Patrick Tiernan (tiernan.14)"
+date: "11/16/2021"
+output: html_document
+---
+
+```{r}
+shots_data <- read.csv("/Users/patricktiernan/Downloads/shots_data.csv")
+
+# classifying each shot as a 2, corner 3, or non-corner 3
+# if the y-coordinate is less than or equal to 7.8, it is a corner 3
+# if the sum of the squared x and y values is greater than 23.75^2, it is a non-corner 3
+    # this comes from pythagorean theorem, and we are looking to see if the diagonal is greater than 23.75
+# every other shot is a 2
+ shots_data$shot_type <- ifelse(shots_data$y <= 7.8 & abs(shots_data$x) > 22, "C3",
+                  ifelse(shots_data$x^2 + shots_data$y^2 > 23.75^2, "NC3", "2PT"))
+
+ library(tidyverse)
+ 
+# summarize shot distribution for each team
+shots_distribution <- shots_data %>% group_by(team) %>% summarise(Percent_2s = mean(shot_type == "2PT"), Percent_NonCorner3s = mean(shot_type == "NC3"), Percent_Corner3s = mean(shot_type == "C3"))
+
+# create column that shows if 3 has been made
+shots_data$three_made <- ifelse(shots_data$fgmade == 1 & shots_data$shot_type != "2PT", 1, 0)
+
+# summarize eFG% for each team from each zone
+eFG <- shots_data %>% group_by(team, shot_type) %>% summarise(eFG = (sum(fgmade) + (.5* sum(three_made)))/(n()))
+
+ 
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+summary(cars)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
